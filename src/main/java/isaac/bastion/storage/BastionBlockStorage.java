@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,10 +28,16 @@ import isaac.bastion.BastionBlock;
 import isaac.bastion.BastionType;
 import isaac.bastion.event.BastionCreateEvent;
 import isaac.bastion.manager.EnderPearlManager;
+import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.model.Reinforcement;
+import vg.civcraft.mc.citadel.reinforcementtypes.ReinforcementType;
+import vg.civcraft.mc.citadel.reinforcementtypes.ReinforcementTypeManager;
+import vg.civcraft.mc.civmodcore.CivModCorePlugin;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
 import vg.civcraft.mc.civmodcore.locations.QTBox;
 import vg.civcraft.mc.civmodcore.locations.SparseQuadTree;
+import vg.civcraft.mc.civmodcore.locations.chunkmeta.XZWCoord;
+import vg.civcraft.mc.civmodcore.locations.chunkmeta.block.BlockBasedChunkMeta;
 
 public class BastionBlockStorage {
 	
@@ -318,6 +325,99 @@ public class BastionBlockStorage {
 		return null;
 	}
 	
+	public Reinforcement getForLocation(int x, int y, int z, short worldID) {
+		int chunkX = BlockBasedChunkMeta.toChunkCoord(x);
+		int chunkZ = BlockBasedChunkMeta.toChunkCoord(z);
+		ReinforcementTypeManager typeMan = Citadel.getInstance().getReinforcementTypeManager();
+		try (Connection insertConn = db.getConnection();
+				PreparedStatement selectRein = insertConn
+						.prepareStatement("select type_id, group_id, creation_time, health, insecure "
+								+ "from ctdl_reinforcements where chunk_x = ? and chunk_z = ? and world_id = ? and x_offset = ? and y = ? and z_offset = ?;");) {
+			selectRein.setInt(1, chunkX);
+			selectRein.setInt(2, chunkZ);
+			selectRein.setShort(3, worldID);
+			selectRein.setByte(4, (byte) BlockBasedChunkMeta.modulo(x));
+			selectRein.setShort(5, (short) y);
+			selectRein.setByte(6, (byte) BlockBasedChunkMeta.modulo(z));
+			try (ResultSet rs = selectRein.executeQuery()) {
+				if (!rs.next()) {
+					return null;
+				}
+				short typeID = rs.getShort(1);
+				ReinforcementType type = typeMan.getById(typeID);
+				if (type == null) {
+					return null;
+				}
+				int groupID = rs.getInt(2);
+				long creationTime = rs.getTimestamp(3).getTime();
+				float health = rs.getFloat(4);
+				boolean insecure = rs.getBoolean(5);
+				World world = CivModCorePlugin.getInstance().getWorldIdManager().getWorldByInternalID(worldID);
+				Location loc = new Location(world, x, y, z);
+				return new Reinforcement(loc, type, groupID, creationTime, health, insecure, false);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+	}
+	
+	public Reinforcement getForLocationOld(int x, int y, int z, short worldID) {
+		int chunkX = BlockBasedChunkMeta.toChunkCoord(x);
+		int chunkZ = BlockBasedChunkMeta.toChunkCoord(z);
+		ReinforcementTypeManager typeMan = Citadel.getInstance().getReinforcementTypeManager();
+		try (Connection insertConn = db.getConnection();
+				PreparedStatement selectRein = insertConn
+						.prepareStatement("select type_id, group_id, creation_time, health, insecure "
+								+ "from old_reinforcements where chunk_x = ? and chunk_z = ? and world_id = ? and x_offset = ? and y = ? and z_offset = ?;");) {
+			selectRein.setInt(1, chunkX);
+			selectRein.setInt(2, chunkZ);
+			selectRein.setShort(3, worldID);
+			selectRein.setByte(4, (byte) BlockBasedChunkMeta.modulo(x));
+			selectRein.setShort(5, (short) y);
+			selectRein.setByte(6, (byte) BlockBasedChunkMeta.modulo(z));
+			try (ResultSet rs = selectRein.executeQuery()) {
+				if (!rs.next()) {
+					return null;
+				}
+				short typeID = rs.getShort(1);
+				ReinforcementType type = typeMan.getById(typeID);
+				if (type == null) {
+					return null;
+				}
+				int groupID = rs.getInt(2);
+				long creationTime = rs.getTimestamp(3).getTime();
+				float health = rs.getFloat(4);
+				boolean insecure = rs.getBoolean(5);
+				World world = CivModCorePlugin.getInstance().getWorldIdManager().getWorldByInternalID(worldID);
+				Location loc = new Location(world, x, y, z);
+				return new Reinforcement(loc, type, groupID, creationTime, health, insecure, false);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+	}
+	
+	public void insert(Reinforcement data) {
+		try (Connection insertConn = db.getConnection();
+				PreparedStatement insertRein = insertConn.prepareStatement(
+						"insert into ctdl_reinforcements (chunk_x, chunk_z, world_id, x_offset, y, z_offset, type_id, "
+								+ "health, group_id, insecure, creation_time) values(?,?,?, ?,?,?, ?,?,?,?,?);");) {
+			insertRein.setInt(1, data.getLocation().getChunk().getX());
+			insertRein.setInt(2, data.getLocation().getChunk().getZ());
+			insertRein.setShort(3, (short) 1);
+			insertRein.setByte(4, (byte) BlockBasedChunkMeta.modulo(data.getLocation().getBlockX()));
+			insertRein.setShort(5, (short) data.getLocation().getBlockY());
+			insertRein.setByte(6, (byte) BlockBasedChunkMeta.modulo(data.getLocation().getBlockZ()));
+			insertRein.setShort(7, data.getType().getID());
+			insertRein.setFloat(8, data.getHealth());
+			insertRein.setInt(9, data.getGroupId());
+			insertRein.setBoolean(10, data.isInsecure());
+			insertRein.setTimestamp(11, new Timestamp(data.getCreationTime()));
+			insertRein.execute();
+		} catch (SQLException e) {
+		}
+	}
+	
 	/**
 	 * Loads all bastions from the database
 	 */
@@ -327,6 +427,9 @@ public class BastionBlockStorage {
 		for(World world : Bukkit.getWorlds()) {
 			SparseQuadTree<BastionBlock> bastionsForWorld = new SparseQuadTree<>(enderSearchRadius);
 			blocks.put(world, bastionsForWorld);
+			int counter = 0;
+			int fixed = 0;
+			int broken = 0;
 			try (Connection conn = db.getConnection();
 					PreparedStatement ps = conn.prepareStatement("select * from bastion_blocks where loc_world=?;")) {
 				ps.setString(1, world.getName());
@@ -341,16 +444,28 @@ public class BastionBlockStorage {
 					boolean died = result.getBoolean("dead");
 					Location loc = new Location(world, x, y, z);
 					BastionBlock block = new BastionBlock(loc, placed, id, type);
-					if (died) {
-						dead.put(loc, block.getType().getName());
-					} else {
-						addBastion(block, bastionsForWorld);
+					Reinforcement rein = getForLocation(x,y,z,(short)1);
+					counter++;
+					if (rein == null) {
+						Reinforcement oldRein = getForLocationOld(x, y, z, (short) 1);
+						if (oldRein != null) {
+							fixed++;
+							System.out.println("Fixign rein at " + oldRein.getLocation());
+							insert(oldRein);
+							loc.getBlock().setType(type.getMaterial());
+						}
+						else {
+							broken++;
+							System.out.println("Could not fix rein at " + block.getLocation());
+						}
 					}
 				}
 			} catch (SQLException e) {
 				log.log(Level.SEVERE, ChatColor.RED + "===== Error loading bastions from database, shutting down =====", e);
 				Bukkit.getServer().getPluginManager().disablePlugin(Bastion.getPlugin());
 			}
+			System.out.println(counter + "  " + fixed + "  " + broken);
+			System.exit(0);
 		}
 	}
 

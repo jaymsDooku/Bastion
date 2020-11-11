@@ -43,12 +43,13 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		this.placed = placed;
 
 		Reinforcement reinforcement = getReinforcement();
-		if (reinforcement != null) {
+		/*if (reinforcement != null) {
 			this.listGroupId = reinforcement.getGroupId();
+			location.getBlock().setType(type.getMaterial());
 		} else{
 			destroy();
 			Bastion.getPlugin().severe("Reinforcement removed during BastionBlock instantiation, removing at " + location.toString());
-		}
+		} */
 
 	}
 
