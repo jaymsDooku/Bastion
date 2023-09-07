@@ -10,6 +10,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import vg.civcraft.mc.citadel.events.ReinforcementCreationEvent;
+import vg.civcraft.mc.citadel.events.ReinforcementDamageEvent;
+import vg.civcraft.mc.citadel.model.Reinforcement;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class CitadelListener implements Listener {
@@ -33,6 +35,18 @@ public class CitadelListener implements Listener {
 				}
 				blockManager.erodeFromPlace(event.getPlayer(), preblocking);
 				return;
+			}
+		}
+	}
+
+	@EventHandler
+	public void onReinforcementDamage(ReinforcementDamageEvent event) {
+		Reinforcement reinforcement = event.getReinforcement();
+		Set<BastionBlock> bastions = blockManager.getBlockingBastions(reinforcement.getLocation());
+		for (BastionBlock bastion : bastions) {
+			BastionType type = bastion.getType();
+			if (type.isDisableReinforcements()) {
+				event.setDamageDone(reinforcement.getType().getHealth());
 			}
 		}
 	}

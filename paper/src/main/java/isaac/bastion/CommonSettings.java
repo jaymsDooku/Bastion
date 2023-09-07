@@ -13,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class CommonSettings {
 	private boolean cancelReinforcementModeInBastionField;
 	private int listBastionTimeout;
+	private long warzoneBroadcastInterval;
 	private Set<Material> cancelPlacementAndDamage;
 
 	public boolean isCancelReinforcementModeInBastionField() {
@@ -23,6 +24,10 @@ public class CommonSettings {
 		return this.listBastionTimeout;
 	}
 
+	public long getWarzoneBroadcastInterval() {
+		return warzoneBroadcastInterval;
+	}
+
 	public Set<Material> getCancelPlacementAndDamage() {
 		return this.cancelPlacementAndDamage;
 	}
@@ -31,6 +36,7 @@ public class CommonSettings {
 		CommonSettings settings = new CommonSettings();
 		settings.cancelReinforcementModeInBastionField = config.getBoolean("cancelReinforcementModeInBastionField", false);
 		settings.listBastionTimeout = config.getInt("listBastionTimeout", 2000);
+		settings.warzoneBroadcastInterval = config.getLong("warzoneBroadcastInterval", 1800000);
 		List<String> materialNames = config.getStringList("cancelPlacementAndDamage");
 		settings.cancelPlacementAndDamage = new HashSet<>();
 		for (String name : materialNames) {

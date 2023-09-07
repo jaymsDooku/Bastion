@@ -43,7 +43,7 @@ permissions:
         default: true
     Bastion.admin:
         description: Special power for admins
-        default: false
+        default: op
         children:
             Bastion.bypass: true
             Bastion.dev: true

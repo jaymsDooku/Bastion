@@ -13,10 +13,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -138,6 +135,12 @@ public class BastionInteractListener implements Listener {
 
 		BastionType type = blockToType(event.getBlock(), inHand);
 		if(type != null) {
+			if (type.isDisableReinforcements()) {
+				if (!WarzoneListener.inWarzone(event.getBlock().getLocation())) {
+					event.getPlayer().sendMessage(ChatColor.RED + "This bastion must be placed in a Warzone.");
+					return;
+				}
+			}
 			Bastion.getPlugin().getLogger().log(Level.INFO, "Pending a bastion at {0}", event.getBlock().getLocation());
 			blockStorage.addPendingBastion(event.getBlock().getLocation(), type);
 		}

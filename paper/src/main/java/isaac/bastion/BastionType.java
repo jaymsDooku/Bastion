@@ -3,6 +3,8 @@ package isaac.bastion;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
+
+import isaac.bastion.utils.Broadcast;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -52,6 +54,8 @@ public class BastionType {
 	private boolean destroyOnRemoveWhileImmature;
 	private int proximityDamageRange;
 	private double proximityDamageFactor;
+	private boolean createWarzone;
+	private boolean disableReinforcements;
 	
 	private String overLayName;
 	
@@ -91,6 +95,8 @@ public class BastionType {
 			boolean destroyOnRemoveWhileImmature,
 			int proximityDamageRange,
 			double proximityDamageFactor,
+			boolean createWarzone,
+			boolean disableReinforcements,
 			String overLayName
 	) {
 		this.name = name;
@@ -129,6 +135,8 @@ public class BastionType {
 		this.destroyOnRemoveWhileImmature = destroyOnRemoveWhileImmature;
 		this.proximityDamageFactor = proximityDamageFactor;
 		this.proximityDamageRange = proximityDamageRange;
+		this.createWarzone = createWarzone;
+		this.disableReinforcements = disableReinforcements;
 		this.overLayName = overLayName;
 		
 		maxRadius = effectRadius > maxRadius ? effectRadius : maxRadius;
@@ -376,7 +384,15 @@ public class BastionType {
 	public int getRegenTime() {
 		return regenTime;
 	}
-	
+
+	public boolean isCreateWarzone() {
+		return createWarzone;
+	}
+
+	public boolean isDisableReinforcements() {
+		return disableReinforcements;
+	}
+
 	public Material getMaterial() {
 		return material;
 	}
@@ -478,6 +494,21 @@ public class BastionType {
 			}
 		}
 	}
+
+	public static void startBroadcastTasks() {
+		for (BastionType type : types.values()) {
+			if (type.isCreateWarzone()) {
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+						for (BastionBlock bastion : Bastion.getBastionStorage().getBastionsForType(type)) {
+							Broadcast.warzoneBroadcast(bastion);
+						}
+					}
+				}.runTaskTimer(Bastion.getPlugin(), 0L, Bastion.getCommonSettings().getWarzoneBroadcastInterval());
+			}
+		}
+	}
 	
 	public static BastionType getBastionType(String name) {
 		return types.get(name);
@@ -576,12 +607,14 @@ public class BastionType {
 		boolean explodeOnBlock = config.getBoolean("elytra.explodeOnBlock");
 		double explodeOnBlockStrength = config.getDouble("elytra.explodeOnBlockStrength");
 		boolean destroyOnRemoveWhileImmature = config.getBoolean("destroyOnRemoveWhileImmature", true);
+		boolean createWarzone = config.getBoolean("createWarzone");
+		boolean disableReinforcements = config.getBoolean("disableReinforcements");
 		String overlayName = config.getString("overlay_name");
 		return new BastionType(name, itemName, material, lore, shortName, square, effectRadius, includeY, startScaleFactor, finalScaleFactor, warmupTime,
 				erosionTime, placementCooldown, destroyOnRemove, blockPearls, blockMidair, scaleFactor, requireMaturity, consumeOnBlock, 
 				blocksToErode, blockElytra, destroyElytra, damageElytra, elytraScale, elytraRequireMature, explodeOnBlock, 
 				explodeOnBlockStrength, damageFirstBastion, regenTime, onlyDirectDestroy, allowPearlingOut, blockReinforcements, destroyOnRemoveWhileImmature,
-				proximityDamageRange, proximityDamageFactor, overlayName);
+				proximityDamageRange, proximityDamageFactor, createWarzone, disableReinforcements, overlayName);
 	}
 
 	@Override

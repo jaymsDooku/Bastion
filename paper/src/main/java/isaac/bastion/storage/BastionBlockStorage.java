@@ -19,6 +19,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import isaac.bastion.utils.Broadcast;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -89,6 +91,12 @@ public class BastionBlockStorage {
 		BastionCreateEvent event = new BastionCreateEvent(bastion, owner);
 		Bukkit.getPluginManager().callEvent(event);
 		if(event.isCancelled()) return false;
+		if (type.isCreateWarzone()) {
+			Broadcast.warzoneBroadcast(bastion);
+		}
+		if (type.isDisableReinforcements()) {
+			Broadcast.attackBastionBroadcast(bastion);
+		}
 		try(Connection conn = db.getConnection();
 				PreparedStatement ps = conn.prepareStatement(addBastion, Statement.RETURN_GENERATED_KEYS);) {
 			ps.setString(1, type.getName());

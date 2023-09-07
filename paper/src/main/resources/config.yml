@@ -12,6 +12,7 @@ mysql:
 commonSettings:
   cancelReinforcementModeInBastionField: false
   listBastionTimeout: 2000
+  warzoneBroadcastInterval: 1800000
   cancelPlacementAndDamage:
     - SCAFFOLDING
 bastions:
@@ -39,6 +40,8 @@ bastions:
     destroyOnRemove: true
     onlyDirectDestroy: false
     destroyOnRemoveWhileImmature: true
+    createWarzone: false
+    disableReinforcements: false
     pearls:
       block: false
       blockMidair: fakse
@@ -74,6 +77,8 @@ bastions:
     destroyOnRemove: false
     onlyDirectDestroy: true
     destroyOnRemoveWhileImmature: true
+    createWarzone: false
+    disableReinforcements: false
     pearls:
       block: false
       blockMidair: false
@@ -108,6 +113,8 @@ bastions:
     placementCooldown: 2000
     destroyOnRemove: true
     onlyDirectDestroy: false
+    createWarzone: false
+    disableReinforcements: false
     pearls:
       block: true
       blockMidair: true
@@ -122,4 +129,78 @@ bastions:
       destroyOnBlock: true
       damageOnBlock: false
       explodeOnBlock: true
+      explodeOnBlockStrength: 0
+  attackbastion:
+    block:
+      material: EMERALD_BLOCK
+      durability: 0
+      name: Attack Bastion
+      lore:
+        - This bastion will is an EMP on a charge. Only placeable in a warzone.
+    squarefield: false
+    effectRadius: 10
+    includeY: true
+    startScaleFactor: 100
+    finalScaleFactor: 0.2
+    warmupTime: 600000
+    erosionPerDay: 0
+    regenPerDay: 0
+    blocksToErode: 1
+    placementCooldown: 2000
+    destroyOnRemove: true
+    onlyDirectDestroy: true
+    createWarzone: false
+    disableReinforcements: true # warzone only
+    pearls:
+      block: false
+      blockMidair: false
+      scaleFactor: 2
+      requireMaturity: false
+      consumeOnBlock: false
+      damageFirstBastion: false
+    elytra:
+      block: false
+      scaleFactor: 1
+      requireMaturity: false
+      destroyOnBlock: false
+      damageOnBlock: false
+      explodeOnBlock: false
+      explodeOnBlockStrength: 0
+  warzonebastion:
+    block:
+      material: DIAMOND_BLOCK
+      durability: 0
+      name: Attack Bastion
+      lore:
+        - This bastion will declare a warzone.
+    squarefield: false
+    effectRadius: 50
+    includeY: true
+    startScaleFactor: 100
+    finalScaleFactor: 0.2
+    warmupTime: 86400000
+    erosionPerDay: 0
+    regenPerDay: 0
+    blocksToErode: 1
+    placementCooldown: 2000
+    destroyOnRemove: true
+    onlyDirectDestroy: true
+    createWarzone: true
+    disableReinforcements: false
+    warzone:
+      bastion
+    pearls:
+      block: false
+      blockMidair: false
+      scaleFactor: 2
+      requireMaturity: false
+      consumeOnBlock: false
+      damageFirstBastion: false
+    elytra:
+      block: false
+      scaleFactor: 1
+      requireMaturity: false
+      destroyOnBlock: false
+      damageOnBlock: false
+      explodeOnBlock: false
       explodeOnBlockStrength: 0
